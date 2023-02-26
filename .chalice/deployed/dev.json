@@ -1,0 +1,11 @@
+{
+  "resources": [
+    {
+      "name": "convertPdfToText",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:us-east-1:026459568683:function:convertPdfToText-dev-convertPdfToText"
+    }
+  ],
+  "schema_version": "2.0",
+  "backend": "api"
+}

@@ -1,0 +1,23 @@
+{
+  "version": "2.0",
+  "app_name": "convertPdfToText",
+  "layers": ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pillow:1"],
+  "stages": {
+    "dev": {
+      "manage_iam_role": false,
+      "iam_role_arn": "XXX",
+      "api_gateway_stage": "api",
+      "lambda_memory_size":8192,
+      "lambda_timeout":90,
+      "environment_variables": {
+        "S3_BUCKET": "felixh-kindle-scrible",
+        "KEY": "pdf/note.pdf",
+        "REGION": "us-east-1",
+        "FMT": "png",
+        "DPI": "300",
+        "EMAILTO": "XXX",
+        "EMAILFROM": "XXX"
+      }
+    }
+  }
+}

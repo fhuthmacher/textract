@@ -1,0 +1,6 @@
+boto3
+pypdfium2==3.21.1
+textract-trp
+image
+bs4
+requests
