@@ -3,3 +3,5 @@
 .chalice/config.json
 __pycache__/**
 testing/**
+.DS_Store
+*.DS_Store*
