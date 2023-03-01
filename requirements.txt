@@ -1,5 +1,5 @@
 boto3
-pypdfium2==3.21.1
+pypdfium2==4
 textract-trp
 image
 bs4
