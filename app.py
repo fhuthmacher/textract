@@ -271,56 +271,49 @@ def convertPdfToText(event, context):
                 raise
 
     # Start converting PDF into JPEG Images
-    page_num = 0
+    n_pages = 0
     result = ''
     if os.path.isfile(pdf_file):
         app.log.info("Converting PDF to images!")        
-        pdf = pdfium.PdfDocument(pdf_file)
+        pdf = pdfium.PdfDocument(pdf_file, may_init_forms=True)
         version = pdf.get_version()  # get the PDF standard version
-        page_num = len(pdf)  # get the number of pages in the document
-        app.log.info("PDF has version " + str(version) + " and " + str(page_num) + "pages")
-        y = 0
-        #workaround since pdf.render_to uses parallel processing with queue which is not supported by Lambda
-        while y < page_num:
-            #page_indices = [i for i in range(y)]  # all pages
-            page_indices = [y]  # one page at a time
-            renderer = pdf.render_to(
-                pdfium.BitmapConv.pil_image,
-                page_indices = page_indices,
+        n_pages = len(pdf)  # get the number of pages in the document
+        app.log.info(f"PDF has version {version} and {page_num} pages")
+        i = 0
+        while i < n_pages:
+            page = pdf[i]
+            image = page.render(
                 scale = 300/72,  # 300dpi resolution
-            )
-            i = 0
-            for i, image in zip(page_indices, renderer):
-                try:
-                    DIR_ID = uuid.uuid4()
-                    image_key_name = "/tmp/{0}_{1}{2}".format(DIR_ID, str(i), "." + FMT)
-                    image.save(image_key_name)
-                    image.close()
-                    app.log.info("Image "+ image_key_name + " saved successfully.") 
+            ).to_pil()
+            try:
+                DIR_ID = uuid.uuid4()
+                image_key_name = "/tmp/{0}_{1}.{2}".format(DIR_ID, str(i), FMT)
+                image.save(image_key_name)
+                image.close()
+                app.log.info(f"Image {image_key_name} saved successfully.") 
 
-                    #upload to S3 for processing via Textract
-                    object_jpg_name = "img/{0}_{1}{2}".format(DIR_ID, str(i), "." + FMT)
-                    output_path = 'text'
+                #upload to S3 for processing via Textract
+                object_jpg_name = "img/{0}_{1}.{2}".format(DIR_ID, str(i), FMT)
+                output_path = 'text'
 
-                    s3client.upload_file(image_key_name, bucket, object_jpg_name)
-                    app.log.info("Image "+ image_key_name + " uploaded successfully to " + object_jpg_name)
+                s3client.upload_file(image_key_name, bucket, object_jpg_name)
+                app.log.info(f"Image {image_key_name} uploaded successfully to {object_jpg_name}")
 
-                    job_id = start_job(textractclient, bucket, object_jpg_name)
-                    app.log.info("Started job with id: {}".format(job_id))
-                    if is_job_complete(textractclient, job_id):
-                        response = get_job_results(textractclient, job_id)
+                job_id = start_job(textractclient, bucket, object_jpg_name)
+                app.log.info("Started job with id: {}".format(job_id))
+                if is_job_complete(textractclient, job_id):
+                    response = get_job_results(textractclient, job_id)
 
-                    # Append detected text
-                    for result_page in response:
-                        for item in result_page["Blocks"]:
-                            if item["BlockType"] == "LINE":
-                                app.log.info('\033[94m' + item["Text"] + '\033[0m')
-                                result = result + "\n" + item["Text"]
-                    
-                except:
-                    app.log.info("PDF to image convertion failed")
-            
-            y = y +1
+                # Append detected text
+                for result_page in response:
+                    for item in result_page["Blocks"]:
+                        if item["BlockType"] == "LINE":
+                            app.log.info('\033[94m' + item["Text"] + '\033[0m')
+                            result = result + "\n" + item["Text"]
+                
+            except:
+                app.log.info("PDF to image convertion failed")            
+            i += 1
 
         app.log.info("send notes via email")
         send_email(ses_client, EMAILTO, 'meeting notes', str(result))
