@@ -275,7 +275,7 @@ def convertPdfToText(event, context):
     result = ''
     if os.path.isfile(pdf_file):
         app.log.info("Converting PDF to images!")        
-        pdf = pdfium.PdfDocument(pdf_file, may_init_forms=True)
+        pdf = pdfium.PdfDocument(pdf_file)
         version = pdf.get_version()  # get the PDF standard version
         n_pages = len(pdf)  # get the number of pages in the document
         app.log.info(f"PDF has version {version} and {page_num} pages")
