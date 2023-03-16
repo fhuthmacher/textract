@@ -10,7 +10,7 @@
       "lambda_memory_size":8192,
       "lambda_timeout":90,
       "environment_variables": {
-        "S3_BUCKET": "felixh-kindle-scrible",
+        "S3_BUCKET": "XXX",
         "KEY": "pdf/note.pdf",
         "REGION": "us-east-1",
         "FMT": "png",
